@@ -1,0 +1,14 @@
+{
+  "name": "astrologion",
+  "version": "1.0.0",
+  "description": "Astrologion HTML5 app wrapped in Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --no-sandbox"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0"
+  },
+  "author": "Anton",
+  "license": "MIT"
+}

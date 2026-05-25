@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Astrologion</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+  :root{
+    --bg:#0a0812;--bg2:#110d1a;--bg3:#1a1228;
+    --gold:#c8a96e;--gold2:#e8c98e;--silver:#8ba4c0;
+    --accent:#7b4fa6;--accent2:#a06dd4;
+    --text:#d4c5a9;--text2:#8a7a60;--border:#2a2040;
+    --fire:#d4603a;--earth:#7a9a5a;--air:#6a9ab8;--water:#5a6aaa;
+  }
+
+  html,body{background:var(--bg);color:var(--text);font-family:'IM Fell English',Georgia,serif;min-height:100vh;overflow-x:hidden}
+
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(123,79,166,0.15) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 80% 80%,rgba(200,169,110,0.08) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d) ease-in-out infinite;opacity:0}
+  @keyframes twinkle{0%,100%{opacity:0}50%{opacity:var(--op)}}
+
+  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 0 40px}
+
+  .header{text-align:center;padding:32px 20px 20px;border-bottom:1px solid var(--border)}
+  .header-glyph{font-size:38px;display:block;margin-bottom:4px;filter:drop-shadow(0 0 12px rgba(200,169,110,0.5))}
+  .app-title{font-family:'Cinzel',serif;font-size:26px;font-weight:700;letter-spacing:4px;color:var(--gold);text-shadow:0 0 20px rgba(200,169,110,0.4)}
+  .app-sub{font-size:11px;letter-spacing:3px;color:var(--text2);margin-top:4px;font-style:italic}
+
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2)}
+  .tab{flex:1;padding:12px 4px;text-align:center;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1.5px;color:var(--text2);cursor:pointer;border:none;background:none;transition:color .2s,border-bottom .2s;border-bottom:2px solid transparent;text-transform:uppercase}
+  .tab.active{color:var(--gold);border-bottom:2px solid var(--gold)}
+
+  .panel{display:none;padding:20px 16px}
+  .panel.active{display:block}
+
+  .field-group{margin-bottom:18px}
+  .field-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;display:block}
+  .field-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'IM Fell English',Georgia,serif;font-size:16px;padding:12px 14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+  .field-input:focus{border-color:var(--accent2)}
+  .field-input option{background:var(--bg2)}
+  select.field-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23c8a96e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+  .calc-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent) 0%,#4a2a70 100%);border:1px solid var(--accent2);border-radius:10px;color:var(--gold2);font-family:'Cinzel',serif;font-size:14px;letter-spacing:3px;cursor:pointer;text-transform:uppercase;margin-top:8px;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(123,79,166,0.3)}
+  .calc-btn:active{transform:scale(0.97);box-shadow:none}
+
+  .result-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:22px 18px;margin-top:20px;position:relative;overflow:hidden}
+  .result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+  .sign-display{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  .sign-symbol{font-size:52px;line-height:1;filter:drop-shadow(0 0 10px currentColor)}
+  .sign-name{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2)}
+  .sign-dates{font-size:12px;color:var(--text2);margin-top:2px;font-style:italic}
+  .sign-element{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:20px;margin-top:6px;font-family:'Cinzel',serif;text-transform:uppercase}
+
+  .el-fire{background:rgba(212,96,58,0.15);color:var(--fire);border:1px solid rgba(212,96,58,0.3)}
+  .el-earth{background:rgba(122,154,90,0.15);color:var(--earth);border:1px solid rgba(122,154,90,0.3)}
+  .el-air{background:rgba(106,154,184,0.15);color:var(--air);border:1px solid rgba(106,154,184,0.3)}
+  .el-water{background:rgba(90,106,170,0.15);color:var(--water);border:1px solid rgba(90,106,170,0.3)}
+
+  .props-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .prop-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+  .prop-key{font-size:9px;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:4px}
+  .prop-val{font-size:13px;color:var(--gold)}
+
+  .section-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  .traits-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .trait{padding:5px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text);font-style:italic}
+
+  .desc-text{font-size:14px;line-height:1.75;color:var(--text);font-style:italic;border-left:2px solid var(--accent);padding-left:14px}
+
+  .compat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .compat-bar-wrap{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+  .compat-bar{height:100%;border-radius:3px;transition:width .8s ease}
+  .compat-pct{font-family:'Cinzel',serif;font-size:11px;color:var(--text2);width:32px;text-align:right}
+  .compat-label{font-size:11px;color:var(--text2);width:72px;font-style:italic}
+
+  .lunar-info{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .moon-big{font-size:56px;text-align:center;display:block;filter:drop-shadow(0 0 16px rgba(139,164,192,0.6));margin-bottom:8px}
+  .moon-name{font-family:'Cinzel',serif;font-size:18px;color:var(--silver);text-align:center;margin-bottom:4px}
+  .moon-sub{font-size:12px;color:var(--text2);text-align:center;font-style:italic}
+  .lunar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+  .signs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sign-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .2s}
+  .sign-card:active{border-color:var(--gold)}
+  .sign-card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .sign-card-sym{font-size:24px}
+  .sign-card-name{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:1px}
+  .sign-card-dates{font-size:10px;color:var(--text2);font-style:italic;margin-top:1px}
+  .sign-card-el{font-size:10px;letter-spacing:1px;font-family:'Cinzel',serif}
+
+  .no-result{text-align:center;padding:30px 0;color:var(--text2);font-style:italic;font-size:14px}
+  .divider{text-align:center;color:var(--text2);font-size:18px;margin:14px 0 10px;letter-spacing:6px}
+  .note-box{background:rgba(123,79,166,0.1);border:1px solid rgba(123,79,166,0.3);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text2);font-style:italic;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="app">
+  <div class="header">
+    <span class="header-glyph">☽</span>
+    <div class="app-title">ASTROLOGION</div>
+    <div class="app-sub">Western Astrology · Offline</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('natal',this)">Natal</button>
+    <button class="tab" onclick="switchTab('compat',this)">Compat.</button>
+    <button class="tab" onclick="switchTab('lunar',this)">Moon</button>
+    <button class="tab" onclick="switchTab('signs',this)">Signs</button>
+  </div>
+
+  <!-- NATAL PANEL -->
+  <div id="panel-natal" class="panel active">
+    <div class="field-group">
+      <label class="field-label">Name (optional)</label>
+      <input class="field-input" id="name" type="text" placeholder="Your name...">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Date of Birth</label>
+      <div class="row3">
+        <select class="field-input" id="bmonth">
+          <option value="">Month</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <select class="field-input" id="bday"><option value="">Day</option></select>
+        <select class="field-input" id="byear"><option value="">Year</option></select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Birth Time (for Rising Sign)</label>
+      <div class="row2">
+        <select class="field-input" id="bhour"><option value="">Hour</option></select>
+        <select class="field-input" id="bmin"><option value="">Min</option></select>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcNatal()">✦ Calculate Chart ✦</button>
+    <div id="natal-result"></div>
+  </div>
+
+  <!-- COMPATIBILITY PANEL -->
+  <div id="panel-compat" class="panel">
+    <div class="field-group">
+      <label class="field-label">First Sign</label>
+      <select class="field-input" id="sign1"><option value="">Choose a sign...</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Second Sign</label>
+      <select class="field-input" id="sign2"><option value="">Choose a sign...</option></select>
+    </div>
+    <button class="calc-btn" onclick="calcCompat()">✦ Check Compatibility ✦</button>
+    <div id="compat-result"></div>
+  </div>
+
+  <!-- LUNAR PANEL -->
+  <div id="panel-lunar" class="panel">
+    <div class="field-group">
+      <label class="field-label">Date</label>
+      <input class="field-input" id="ldate" type="date">
+    </div>
+    <button class="calc-btn" onclick="calcLunar()">✦ Moon Phase ✦</button>
+    <div id="lunar-result"></div>
+  </div>
+
+  <!-- SIGNS REFERENCE -->
+  <div id="panel-signs" class="panel">
+    <div class="signs-grid" id="signs-grid"></div>
+  </div>
+</div>
+
+<script>
+const SIGNS = [
+  {
+    name:'Aries', sym:'♈', dates:'Mar 21 — Apr 19', start:[3,21], end:[4,19],
+    element:'Fire', elClass:'el-fire', modality:'Cardinal',
+    ruler:'Mars ♂', color:'#d4603a',
+    traits:['Bold','Impulsive','Energetic','Leader','Honest','Impatient'],
+    desc:'Aries is the first sign of the zodiac — the pioneer and trailblazer. Born under this sign, they carry boundless energy and a hunger for adventure. They leap forward without fear and inspire others with their sheer determination.',
+    lucky:{stone:'Ruby',day:'Tuesday',number:'9',color:'Red'}
+  },
+  {
+    name:'Taurus', sym:'♉', dates:'Apr 20 — May 20', start:[4,20], end:[5,20],
+    element:'Earth', elClass:'el-earth', modality:'Fixed',
+    ruler:'Venus ♀', color:'#7a9a5a',
+    traits:['Reliable','Patient','Practical','Sensual','Stubborn','Loyal'],
+    desc:'Taurus is the sign of earthly stability and sensuous beauty. Taureans treasure comfort, elegance, and the quality of life. They have a natural eye for beauty and a gift for creating warmth around them — steadfast in goals and faithful in love.',
+    lucky:{stone:'Emerald',day:'Friday',number:'6',color:'Green'}
+  },
+  {
+    name:'Gemini', sym:'♊', dates:'May 21 — Jun 20', start:[5,21], end:[6,20],
+    element:'Air', elClass:'el-air', modality:'Mutable',
+    ruler:'Mercury ☿', color:'#6a9ab8',
+    traits:['Social','Curious','Adaptable','Witty','Restless','Clever'],
+    desc:'Gemini embodies duality and intellectual liveliness. Born under this sign, they possess a sharp mind, a gift for language, and an insatiable thirst for knowledge. They adapt effortlessly to any situation, though they can sometimes be inconsistent.',
+    lucky:{stone:'Agate',day:'Wednesday',number:'5',color:'Yellow'}
+  },
+  {
+    name:'Cancer', sym:'♋', dates:'Jun 21 — Jul 22', start:[6,21], end:[7,22],
+    element:'Water', elClass:'el-water', modality:'Cardinal',
+    ruler:'Moon ☽', color:'#5a6aaa',
+    traits:['Intuitive','Nurturing','Sensitive','Loyal','Cautious','Homebody'],
+    desc:'Cancer is the guardian of hearth and home — a master of intuition. Cancers are deeply attached to loved ones and create warmth wherever they go. Their intuition borders on the supernatural, and their memory holds every cherished detail.',
+    lucky:{stone:'Moonstone',day:'Monday',number:'2',color:'Silver'}
+  },
+  {
+    name:'Leo', sym:'♌', dates:'Jul 23 — Aug 22', start:[7,23], end:[8,22],
+    element:'Fire', elClass:'el-fire', modality:'Fixed',
+    ruler:'Sun ☀', color:'#d4603a',
+    traits:['Charismatic','Generous','Proud','Creative','Dramatic','Magnanimous'],
+    desc:'Leo is the ruler of the zodiac, radiating royal dignity. Leos are impossible to miss — they draw every gaze and inspire those around them. They are endlessly generous with those they love and passionate in everything they pursue.',
+    lucky:{stone:'Amber',day:'Sunday',number:'1',color:'Gold'}
+  },
+  {
+    name:'Virgo', sym:'♍', dates:'Aug 23 — Sep 22', start:[8,23], end:[9,22],
+    element:'Earth', elClass:'el-earth', modality:'Mutable',
+    ruler:'Mercury ☿', color:'#7a9a5a',
+    traits:['Analytical','Detail-oriented','Modest','Hardworking','Critical','Healthy'],
+    desc:'Virgo is the sign of perfection and service. Virgos have a razor-sharp analytical mind and catch what others miss. Their drive for excellence makes them irreplaceable professionals — though that same perfectionism can sometimes hold them back.',
+    lucky:{stone:'Sapphire',day:'Wednesday',number:'6',color:'Navy Blue'}
+  },
+  {
+    name:'Libra', sym:'♎', dates:'Sep 23 — Oct 22', start:[9,23], end:[10,22],
+    element:'Air', elClass:'el-air', modality:'Cardinal',
+    ruler:'Venus ♀', color:'#6a9ab8',
+    traits:['Harmonious','Diplomatic','Fair','Charming','Indecisive','Aesthetic'],
+    desc:'Libra is the embodiment of harmony, beauty, and justice. Born under this sign, they possess natural charm and an uncanny ability to find balance in any situation. They abhor conflict and ceaselessly seek peace and beauty.',
+    lucky:{stone:'Opal',day:'Friday',number:'7',color:'Pink'}
+  },
+  {
+    name:'Scorpio', sym:'♏', dates:'Oct 23 — Nov 21', start:[10,23], end:[11,21],
+    element:'Water', elClass:'el-water', modality:'Fixed',
+    ruler:'Pluto ♇', color:'#5a6aaa',
+    traits:['Intense','Perceptive','Passionate','Transformative','Jealous','Deep'],
+    desc:'Scorpio is the most enigmatic sign of the zodiac — linked to death, rebirth, and hidden truths. Scorpios possess extraordinary willpower and an ability to transform themselves completely. Their gaze cuts straight to the core of any matter.',
+    lucky:{stone:'Garnet',day:'Tuesday',number:'8',color:'Dark Red'}
+  },
+  {
+    name:'Sagittarius', sym:'♐', dates:'Nov 22 — Dec 21', start:[11,22], end:[12,21],
+    element:'Fire', elClass:'el-fire', modality:'Mutable',
+    ruler:'Jupiter ♃', color:'#d4603a',
+    traits:['Optimistic','Adventurous','Honest','Freedom-loving','Restless','Wise'],
+    desc:'Sagittarius is the eternal seeker of adventure and wisdom. Born under this sign, they crave to know the world in all its variety. Their optimism is contagious, and their honesty can sometimes tip into bluntness.',
+    lucky:{stone:'Turquoise',day:'Thursday',number:'3',color:'Purple'}
+  },
+  {
+    name:'Capricorn', sym:'♑', dates:'Dec 22 — Jan 19', start:[12,22], end:[1,19],
+    element:'Earth', elClass:'el-earth', modality:'Cardinal',
+    ruler:'Saturn ♄', color:'#7a9a5a',
+    traits:['Ambitious','Disciplined','Responsible','Practical','Reserved','Resilient'],
+    desc:'Capricorn is the sign of achievement and mastery. Capricorns build their lives like architects — with patience, planning, and iron discipline. They are capable of reaching the summit of any field, provided they truly desire it.',
+    lucky:{stone:'Onyx',day:'Saturday',number:'8',color:'Black'}
+  },
+  {
+    name:'Aquarius', sym:'♒', dates:'Jan 20 — Feb 18', start:[1,20], end:[2,18],
+    element:'Air', elClass:'el-air', modality:'Fixed',
+    ruler:'Uranus ♅', color:'#6a9ab8',
+    traits:['Progressive','Original','Humanitarian','Independent','Eccentric','Intellectual'],
+    desc:'Aquarius is the revolutionary and visionary of the zodiac. Born under this sign, they see the world differently from everyone else. They dream of an ideal society and will fight for freedom and equality for all.',
+    lucky:{stone:'Amethyst',day:'Saturday',number:'4',color:'Sky Blue'}
+  },
+  {
+    name:'Pisces', sym:'♓', dates:'Feb 19 — Mar 20', start:[2,19], end:[3,20],
+    element:'Water', elClass:'el-water', modality:'Mutable',
+    ruler:'Neptune ♆', color:'#5a6aaa',
+    traits:['Dreamy','Empathetic','Creative','Spiritual','Compassionate','Intuitive'],
+    desc:'Pisces is the most mystical sign of the zodiac — living on the border of the real and the imagined. They possess profound empathy and an artist\'s gift. For Pisces, the world is a kaleidoscope of images, feelings, and inspiration.',
+    lucky:{stone:'Aquamarine',day:'Friday',number:'7',color:'Sea Green'}
+  }
+];
+
+const COMPAT = [
+  [95,40,85,60,95,70,80,55,90,70,65,50],
+  [40,95,55,80,65,95,75,65,55,90,60,85],
+  [85,55,90,50,85,70,95,60,90,55,90,55],
+  [60,80,50,95,60,85,55,90,45,75,55,90],
+  [95,65,85,60,95,60,80,55,85,60,65,50],
+  [70,95,70,85,60,95,55,75,55,90,55,80],
+  [80,75,95,55,80,55,90,55,90,55,90,60],
+  [55,65,60,90,55,75,55,95,50,85,60,90],
+  [90,55,90,45,85,55,90,50,95,55,85,55],
+  [70,90,55,75,60,90,55,85,55,95,55,80],
+  [65,60,90,55,65,55,90,60,85,55,95,65],
+  [50,85,55,90,50,80,60,90,55,80,65,95],
+];
+
+const MOON_PHASES = [
+  {name:'New Moon',sym:'🌑',desc:'The beginning of a new cycle. A time for intentions and planting seeds.',energy:'Initiation'},
+  {name:'Waxing Crescent',sym:'🌒',desc:'Growth and expansion. Move forward toward your goals with courage.',energy:'Growth'},
+  {name:'First Quarter',sym:'🌓',desc:'Challenges and decisions. Push through the first obstacles on your path.',energy:'Action'},
+  {name:'Waxing Gibbous',sym:'🌔',desc:'The climax of your efforts. Gather the fruits of your actions.',energy:'Momentum'},
+  {name:'Full Moon',sym:'🌕',desc:'Peak energy and awareness. Completion and manifestation are at hand.',energy:'Fulfillment'},
+  {name:'Waning Gibbous',sym:'🌖',desc:'Sharing wisdom. Distribute what you have learned with others.',energy:'Gratitude'},
+  {name:'Last Quarter',sym:'🌗',desc:'Release and reflection. A time for letting go and preparing for renewal.',energy:'Release'},
+  {name:'Waning Crescent',sym:'🌘',desc:'Rest and restoration. Prepare yourself quietly for the next cycle.',energy:'Rest'},
+];
+
+function getSignFromDate(month, day) {
+  const m=parseInt(month),d=parseInt(day);
+  if((m===3&&d>=21)||(m===4&&d<=19))return 0;
+  if((m===4&&d>=20)||(m===5&&d<=20))return 1;
+  if((m===5&&d>=21)||(m===6&&d<=20))return 2;
+  if((m===6&&d>=21)||(m===7&&d<=22))return 3;
+  if((m===7&&d>=23)||(m===8&&d<=22))return 4;
+  if((m===8&&d>=23)||(m===9&&d<=22))return 5;
+  if((m===9&&d>=23)||(m===10&&d<=22))return 6;
+  if((m===10&&d>=23)||(m===11&&d<=21))return 7;
+  if((m===11&&d>=22)||(m===12&&d<=21))return 8;
+  if((m===12&&d>=22)||(m===1&&d<=19))return 9;
+  if((m===1&&d>=20)||(m===2&&d<=18))return 10;
+  return 11;
+}
+
+function getRisingSign(hour,min,birthSignIdx){
+  if(hour===''||hour===null||hour===undefined)return null;
+  const totalHours=parseInt(hour)+(parseInt(min)||0)/60;
+  return(birthSignIdx+Math.round(totalHours/2))%12;
+}
+
+function getMoonSignApprox(year,month,day){
+  const a=Math.floor((14-month)/12);
+  const y=year+4800-a,m2=month+12*a-3;
+  let jd=day+Math.floor((153*m2+2)/5)+365*y+Math.floor(y/4)-Math.floor(y/100)+Math.floor(y/400)-32045;
+  const idx=Math.floor(((((jd-2451550.1)%27.321661)+27.321661)%27.321661)/27.321661*12);
+  return((idx%12)+12)%12;
+}
+
+function getLunarPhase(date){
+  const diff=(date-new Date('2000-01-06'))/(1000*60*60*24);
+  const cycle=29.530588,phase=((diff%cycle)+cycle)%cycle;
+  return{phase:MOON_PHASES[Math.floor(phase/cycle*8)],day:Math.round(phase)};
+}
+
+function compatColor(p){return p>=80?'#7b4fa6':p>=60?'#6a9ab8':p>=40?'#c8a96e':'#d4603a'}
+
+function compatLabel(p){
+  if(p>=90)return'Perfect';if(p>=75)return'Excellent';
+  if(p>=60)return'Good';if(p>=45)return'Moderate';return'Challenging';
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+function calcNatal(){
+  const m=document.getElementById('bmonth').value;
+  const d=document.getElementById('bday').value;
+  const y=document.getElementById('byear').value;
+  const h=document.getElementById('bhour').value;
+  const mn=document.getElementById('bmin').value;
+  const name=document.getElementById('name').value.trim();
+
+  if(!m||!d||!y){
+    document.getElementById('natal-result').innerHTML='<div class="no-result">Please enter your date of birth</div>';
+    return;
+  }
+
+  const si=getSignFromDate(m,d),s=SIGNS[si];
+  const moonSign=SIGNS[getMoonSignApprox(parseInt(y),parseInt(m),parseInt(d))];
+  const risingIdx=getRisingSign(h,mn,si);
+  const rising=risingIdx!==null?SIGNS[risingIdx]:null;
+
+  const digits=(y+String(m).padStart(2,'0')+String(d).padStart(2,'0')).split('').map(Number);
+  let lp=digits.reduce((a,b)=>a+b,0);
+  while(lp>9&&lp!==11&&lp!==22){lp=lp.toString().split('').map(Number).reduce((a,b)=>a+b,0);}
+
+  document.getElementById('natal-result').innerHTML=`
+    <div class="result-card">
+      ${name?`<div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text2);margin-bottom:14px;letter-spacing:2px;text-transform:uppercase">${name}</div>`:''}
+      <div class="sign-display">
+        <span class="sign-symbol" style="color:${s.color}">${s.sym}</span>
+        <div>
+          <div class="sign-name">${s.name}</div>
+          <div class="sign-dates">${s.dates}</div>
+          <span class="sign-element ${s.elClass}">${s.element} · ${s.modality}</span>
+        </div>
+      </div>
+      <div class="section-title">Key Planets</div>
+      <div class="props-grid">
+        <div class="prop-item"><div class="prop-key">☀ Sun</div><div class="prop-val">${s.sym} ${s.name}</div></div>
+        <div class="prop-item"><div class="prop-key">☽ Moon</div><div class="prop-val">${moonSign.sym} ${moonSign.name}</div></div>
+        ${rising?`<div class="prop-item"><div class="prop-key">↑ Rising</div><div class="prop-val">${rising.sym} ${rising.name}</div></div>`:''}
+        <div class="prop-item"><div class="prop-key">Ruler</div><div class="prop-val">${s.ruler}</div></div>
+        <div class="prop-item"><div class="prop-key">🔢 Life Path</div><div class="prop-val">${lp}</div></div>
+        <div class="prop-item"><div class="prop-key">💎 Birthstone</div><div class="prop-val">${s.lucky.stone}</div></div>
+      </div>
+      <div class="section-title">Character Traits</div>
+      <div class="traits-list">${s.traits.map(t=>`<span class="trait">${t}</span>`).join('')}</div>
+      <div class="section-title">Description</div>
+      <div class="desc-text">${s.desc}</div>
+      <div class="divider">· · ·</div>
+      <div class="section-title">Lucky Symbols</div>
+      <div class="props-grid">
+        <div class="prop-item"><div class="prop-key">📅 Day</div><div class="prop-val">${s.lucky.day}</div></div>
+        <div class="prop-item"><div class="prop-key">🔢 Number</div><div class="prop-val">${s.lucky.number}</div></div>
+        <div class="prop-item"><div class="prop-key">🎨 Color</div><div class="prop-val">${s.lucky.color}</div></div>
+        <div class="prop-item"><div class="prop-key">💎 Stone</div><div class="prop-val">${s.lucky.stone}</div></div>
+      </div>
+      ${!rising?`<div class="note-box">💡 Add your birth time above to calculate your Rising (Ascendant) sign</div>`:''}
+    </div>`;
+}
+
+function calcCompat(){
+  const i1=parseInt(document.getElementById('sign1').value);
+  const i2=parseInt(document.getElementById('sign2').value);
+  if(isNaN(i1)||isNaN(i2)){
+    document.getElementById('compat-result').innerHTML='<div class="no-result">Please select both signs</div>';
+    return;
+  }
+  const s1=SIGNS[i1],s2=SIGNS[i2],overall=COMPAT[i1][i2];
+  const love=Math.min(100,Math.max(10,overall+((Math.random()*10-5)|0)));
+  const friendship=Math.min(100,Math.max(10,overall-5+((Math.random()*10)|0)));
+  const business=Math.min(100,Math.max(10,overall-10+((Math.random()*14)|0)));
+  const comm=Math.min(100,Math.max(10,overall+((Math.random()*12-6)|0)));
+  const areas=[{label:'Romance',val:love},{label:'Friendship',val:friendship},{label:'Work',val:business},{label:'Communication',val:comm}];
+  const sameEl=s1.element===s2.element;
+  const note=overall>=80?'🌟 Strong astrological compatibility — these signs beautifully complement each other.':
+    overall>=60?'✨ Good compatibility with some differences that enrich the relationship.':
+    overall>=40?'⚡ This pairing takes effort, but can become a powerful source of growth for both.':
+    '🔥 A fiery, intense match — rewarding, but it demands real inner work.';
+
+  document.getElementById('compat-result').innerHTML=`
+    <div class="result-card">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px">
+        <div style="text-align:center">
+          <div style="font-size:40px;color:${s1.color}">${s1.sym}</div>
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);margin-top:4px">${s1.name}</div>
+        </div>
+        <div style="font-size:20px;color:var(--text2)">×</div>
+        <div style="text-align:center">
+          <div style="font-size:40px;color:${s2.color}">${s2.sym}</div>
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);margin-top:4px">${s2.name}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="font-family:'Cinzel',serif;font-size:42px;color:var(--gold2);font-weight:700">${overall}<span style="font-size:18px">%</span></div>
+        <div style="font-size:13px;color:var(--text2);font-style:italic">${compatLabel(overall)} compatibility</div>
+        ${sameEl?`<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px">✦ Same element · ${s1.element} ✦</div>`:''}
+      </div>
+      <div class="section-title">By Area</div>
+      ${areas.map(a=>`
+        <div class="compat-row">
+          <span class="compat-label">${a.label}</span>
+          <div class="compat-bar-wrap"><div class="compat-bar" style="width:${a.val}%;background:${compatColor(a.val)}"></div></div>
+          <span class="compat-pct">${a.val}%</span>
+        </div>`).join('')}
+      <div style="margin-top:16px" class="desc-text">${note}</div>
+    </div>`;
+}
+
+function calcLunar(){
+  const val=document.getElementById('ldate').value;
+  if(!val){document.getElementById('lunar-result').innerHTML='<div class="no-result">Please select a date</div>';return;}
+  const d=new Date(val+'T12:00:00');
+  const{phase,day}=getLunarPhase(d);
+  const ms=SIGNS[getMoonSignApprox(d.getFullYear(),d.getMonth()+1,d.getDate())];
+  document.getElementById('lunar-result').innerHTML=`
+    <div class="lunar-info" style="margin-top:16px">
+      <span class="moon-big">${phase.sym}</span>
+      <div class="moon-name">${phase.name}</div>
+      <div class="moon-sub">Lunar cycle day: ${day}</div>
+      <div class="divider">· · ·</div>
+      <div class="desc-text" style="text-align:center;padding:0;border:none;font-size:14px">${phase.desc}</div>
+      <div class="lunar-grid">
+        <div class="prop-item"><div class="prop-key">⚡ Energy</div><div class="prop-val">${phase.energy}</div></div>
+        <div class="prop-item"><div class="prop-key">☽ Moon in</div><div class="prop-val">${ms.sym} ${ms.name}</div></div>
+        <div class="prop-item"><div class="prop-key">🌊 Element</div><div class="prop-val">${ms.element}</div></div>
+        <div class="prop-item"><div class="prop-key">📅 Cycle</div><div class="prop-val">${day}/30</div></div>
+      </div>
+    </div>`;
+}
+
+function showSignDetail(idx){
+  const s=SIGNS[idx];
+  document.getElementById('panel-signs').innerHTML=`
+    <button onclick="buildSignsGrid()" style="background:none;border:none;color:var(--text2);font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;cursor:pointer;padding:0 0 14px;text-decoration:underline">← All Signs</button>
+    <div class="result-card">
+      <div class="sign-display">
+        <span class="sign-symbol" style="color:${s.color}">${s.sym}</span>
+        <div>
+          <div class="sign-name">${s.name}</div>
+          <div class="sign-dates">${s.dates}</div>
+          <span class="sign-element ${s.elClass}">${s.element} · ${s.modality}</span>
+        </div>
+      </div>
+      <div class="props-grid">
+        <div class="prop-item"><div class="prop-key">Ruler</div><div class="prop-val">${s.ruler}</div></div>
+        <div class="prop-item"><div class="prop-key">Birthstone</div><div class="prop-val">${s.lucky.stone}</div></div>
+        <div class="prop-item"><div class="prop-key">Lucky Day</div><div class="prop-val">${s.lucky.day}</div></div>
+        <div class="prop-item"><div class="prop-key">Lucky Number</div><div class="prop-val">${s.lucky.number}</div></div>
+      </div>
+      <div class="section-title">Traits</div>
+      <div class="traits-list">${s.traits.map(t=>`<span class="trait">${t}</span>`).join('')}</div>
+      <div class="section-title">About</div>
+      <div class="desc-text">${s.desc}</div>
+    </div>`;
+}
+
+function buildSignsGrid(){
+  document.getElementById('panel-signs').innerHTML='<div class="signs-grid" id="signs-grid"></div>';
+  document.getElementById('signs-grid').innerHTML=SIGNS.map((s,i)=>`
+    <div class="sign-card" onclick="showSignDetail(${i})">
+      <div class="sign-card-top">
+        <span class="sign-card-sym" style="color:${s.color}">${s.sym}</span>
+        <div>
+          <div class="sign-card-name">${s.name}</div>
+          <div class="sign-card-dates">${s.dates}</div>
+        </div>
+      </div>
+      <span class="sign-card-el ${s.elClass}">${s.element}</span>
+    </div>`).join('');
+}
+
+function initSelects(){
+  const days=document.getElementById('bday');
+  for(let i=1;i<=31;i++)days.innerHTML+=`<option value="${i}">${i}</option>`;
+  const years=document.getElementById('byear');
+  const cy=new Date().getFullYear();
+  for(let y=cy;y>=1920;y--)years.innerHTML+=`<option value="${y}">${y}</option>`;
+  const hours=document.getElementById('bhour');
+  for(let h=0;h<24;h++)hours.innerHTML+=`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`;
+  const mins=document.getElementById('bmin');
+  for(let m=0;m<60;m+=5)mins.innerHTML+=`<option value="${m}">${String(m).padStart(2,'0')}</option>`;
+  const s1=document.getElementById('sign1'),s2=document.getElementById('sign2');
+  SIGNS.forEach((s,i)=>{
+    s1.innerHTML+=`<option value="${i}">${s.sym} ${s.name}</option>`;
+    s2.innerHTML+=`<option value="${i}">${s.sym} ${s.name}</option>`;
+  });
+  document.getElementById('ldate').value=new Date().toISOString().split('T')[0];
+}
+
+function initStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*1.5+0.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--op:${0.3+Math.random()*0.5};animation-delay:${Math.random()*5}s`;
+    c.appendChild(s);
+  }
+}
+
+initSelects();initStars();buildSignsGrid();
+</script>
+
+<!-- FOOTER -->
+<div style="position:relative;z-index:1;max-width:480px;margin:0 auto;padding:24px 16px 36px;border-top:1px solid #2a2040;text-align:center">
+  <div style="font-size:22px;margin-bottom:10px;filter:drop-shadow(0 0 8px rgba(200,169,110,0.4))">✦ ☽ ✦</div>
+  <div style="font-family:'Cinzel',Georgia,serif;font-size:10px;letter-spacing:3px;color:#8a7a60;text-transform:uppercase;margin-bottom:14px">About</div>
+  <div style="font-family:'Cinzel',Georgia,serif;font-size:15px;color:#c8a96e;letter-spacing:1px;margin-bottom:4px">Astrologion</div>
+  <div style="font-size:11px;color:#8a7a60;font-style:italic;margin-bottom:16px">Offline Western Astrology Calculator · v1.0.0</div>
+  <div style="background:#1a1228;border:1px solid #2a2040;border-radius:10px;padding:14px 18px;display:inline-block;text-align:left;min-width:220px">
+    <div style="font-family:'Cinzel',Georgia,serif;font-size:9px;letter-spacing:2px;color:#8a7a60;text-transform:uppercase;margin-bottom:8px">Developer</div>
+    <div style="font-size:14px;color:#e8c98e;margin-bottom:6px">Anton Sergeev</div>
+    <a href="mailto:antonsergeev548@gmail.com" style="font-size:12px;color:#7b4fa6;text-decoration:none;font-style:italic;letter-spacing:0.5px">antonsergeev548@gmail.com</a>
+  </div>
+  <div style="margin-top:18px;font-size:10px;color:#4a3a28;font-style:italic">© 2026 Anton Sergeev · All rights reserved</div>
+</div>
+
+</body>
+</html>
