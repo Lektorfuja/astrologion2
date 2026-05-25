@@ -1,0 +1,25 @@
+app-id: io.github.antonsergeev.Astrologion
+
+runtime: org.gnome.Platform
+runtime-version: "47"
+sdk: org.gnome.Sdk
+
+command: astrologion
+
+finish-args:
+  - --socket=x11
+  - --socket=wayland
+  - --share=network
+
+modules:
+  - name: astrologion
+    buildsystem: simple
+
+    build-commands:
+      - mkdir -p /app/share/astrologion
+      - cp -r . /app/share/astrologion
+      - install -Dm755 run.py /app/bin/astrologion
+
+    sources:
+      - type: dir
+        path: .
