@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Astrologion
+Comment=HTML5 Astrology Application
+Exec=astrologion
+Icon=io.github.antonsergeev.Astrologion
+Terminal=false
+Categories=Utility;
+StartupNotify=true
